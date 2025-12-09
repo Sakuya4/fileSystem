@@ -13,6 +13,7 @@ int mkdirCommand(); // make directory
 int rmdirCommand(); // remove directory
 int putsCommand(); // upload file
 int getsCommand(); // download file
+int renameCommand(); // rename file 
 int catCommand(); // display file content
 int statusCommand(); // display file status
 int helpCommand(); // display help information
@@ -20,6 +21,8 @@ int exitCommand(); // exit program
 /* base command done */
 
 /* adv command */
+int chmodCommand(); // change file permission
+int chownCommand(); // change file owner
 int vimCommand();// VIM editor command
 /* adv command done */
 
