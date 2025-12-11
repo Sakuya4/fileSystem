@@ -8,6 +8,7 @@
 #include "vfs.h"
 #include "inode.h"
 #include "dentry.h"
+#include "path.h"
 /* define done */
 
 /* define function */
@@ -23,7 +24,7 @@ int vfs_ls(void);
 int vfs_ls_path(const char *path);
 int vfs_cd(const char *path);
 int vfs_get_cwd(char *buf, size_t size);
-static void trim(char *s);
+
 
 int vfs_create_file(const char *path);
 int vfs_write_all(const char *path, const char *data);
@@ -305,92 +306,6 @@ int vfs_get_cwd(char *buf, size_t size)
   }
 
   return 0;
-}
-
-
-static void trim(char *s)
-{
-  char *p = s;
-  int len;
-
-  while(*p == ' ' || *p == '\t') p++;
-  if(p != s) memmove(s, p, strlen(p) + 1);
-
-  len = strlen(s);
-  while(len > 0 && (s[len-1] == ' ' || s[len-1] == '\t'))
-  {
-    s[len-1] = '\0';
-    len--;
-  }
-}
-
-/* 把多個 '/' 合成一個 */
-static void remove_multiple_slashes(char *s)
-{
-  char *dst = s;
-  char *src = s;
-
-  int slash = 0;
-
-  while(*src)
-  {
-    if(*src == '/')
-    {
-      if(!slash)
-      {
-        *dst++ = '/';
-      }
-      slash = 1;
-    }
-    else
-    {
-      slash = 0;
-      *dst++ = *src;
-    }
-    src++;
-  }
-  *dst = '\0';
-}
-
-/* 移除字串尾端的 '/' (保留 root "/" 特例) */
-static void rstrip_slash(char *s)
-{
-  int len = strlen(s);
-  while(len > 1 && s[len - 1] == '/')
-  {
-    s[len - 1] = '\0';
-    len--;
-  }
-}
-
-/* tokenize: 找下一段 token */
-static char *next_token(char **p)
-{
-  char *s = *p;
-
-  if(s == NULL || *s == '\0')
-  {
-    return NULL;
-  }
-
-  char *start = s;
-
-  while(*s && *s != '/')
-  {
-    s++;
-  }
-
-  if(*s == '/')
-  {
-    *s = '\0';
-    *p = s + 1;
-  }
-  else
-  {
-    *p = s;
-  }
-
-  return start;
 }
 
 struct dentry *vfs_lookup(const char *path)

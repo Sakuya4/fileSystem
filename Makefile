@@ -3,14 +3,16 @@ CFLAGS  := -std=c11 -Wall -Wextra -Wpedantic -g
 
 INCLUDES := -Isrc -Isrc/fs
 
-TARGET  := fs_demo
+TARGET  := VFS
 
 SRC_DIR := src
 FS_DIR  := $(SRC_DIR)/fs
 
 SRCS := \
     $(SRC_DIR)/main.c \
-    $(FS_DIR)/vfs.c
+	$(SRC_DIR)/shell.c \
+    $(FS_DIR)/vfs.c \
+    $(FS_DIR)/path.c 
 
 
 OBJS := $(SRCS:.c=.o)
