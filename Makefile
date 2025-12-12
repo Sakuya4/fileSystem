@@ -13,8 +13,8 @@ SRCS := \
     $(SRC_DIR)/shell.c \
     $(FS_DIR)/vfs_cores.c \
     $(FS_DIR)/vfs.c \
-    $(FS_DIR)/path.c
-
+    $(FS_DIR)/path.c \
+    $(FS_DIR)/vfs_dir.c
 
 OBJS := $(SRCS:.c=.o)
 
