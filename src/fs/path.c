@@ -78,15 +78,9 @@ void rstrip_slash(char *s)
 
 char *next_token(char **p)
 {
-  char *s;
+  char *s = *p;
   char *start;
 
-  if (p == NULL)
-  {
-    return NULL;
-  }
-
-  s = *p;
   if (s == NULL || *s == '\0')
   {
     return NULL;
@@ -106,8 +100,10 @@ char *next_token(char **p)
   }
   else
   {
-    *p = s;
+    *p = s; /* 指到 '\0' */
   }
 
   return start;
 }
+
+

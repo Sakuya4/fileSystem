@@ -10,9 +10,10 @@ FS_DIR  := $(SRC_DIR)/fs
 
 SRCS := \
     $(SRC_DIR)/main.c \
-	$(SRC_DIR)/shell.c \
+    $(SRC_DIR)/shell.c \
+    $(FS_DIR)/vfs_cores.c \
     $(FS_DIR)/vfs.c \
-    $(FS_DIR)/path.c 
+    $(FS_DIR)/path.c
 
 
 OBJS := $(SRCS:.c=.o)
