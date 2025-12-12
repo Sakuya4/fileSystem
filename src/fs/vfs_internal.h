@@ -17,3 +17,6 @@ int  dentry_remove_child(struct dentry *parent, struct dentry *child);
 struct dentry *dentry_find_child(struct dentry *parent, const char *name);
 
 #endif /* _VFS_INTERNAL_H_ */
+
+
+
