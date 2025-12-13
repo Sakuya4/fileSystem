@@ -8,6 +8,7 @@
 #include "path.h"
 #include "inode.h"
 #include "dentry.h"
+#include "block.h"
 
 /* user define function*/
 struct dentry *vfs_lookup(const char *path);
@@ -282,8 +283,13 @@ int vfs_rm(const char *path)
   if (dentry_remove_child(parent, dent) != 0)
     return -1;
 
-  if (inode->i_data)
-    free(inode->i_data);
+  for (int i = 0; i < DIRECT_BLOCKS; i++) {
+    if (inode->i_block[i] >= 0) {
+      block_free(inode->i_block[i]);
+      inode->i_block[i] = -1;
+    }
+  }
+
   free(inode);
 
   if (dent->d_name)

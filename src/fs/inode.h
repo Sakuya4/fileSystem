@@ -2,9 +2,10 @@
 #define _INODE_H_
 
 #include "types.h"
+#include <stdint.h>
 #include <time.h>
 
-/* define mode bit */
+/* mode bits */
 #define FS_IFMT   0170000
 #define FS_IFREG  0100000
 #define FS_IFDIR  0040000
@@ -19,39 +20,28 @@
 #define FS_IWOTH  0002
 #define FS_IXOTH  0001
 
-#define DIRECT_BLOCKS 12 //for block use
-/* define mode bit done */
+#define DIRECT_BLOCKS 12
 
 struct super_block;
 
-typedef enum 
-{
+typedef enum {
   FS_INODE_FILE = 1,
   FS_INODE_DIR  = 2,
 } fs_inode_type_t;
 
-struct inode 
-{
-  fs_ino_t      i_ino;    // inode number
-  fs_inode_type_t i_type; // file or directory
-  fs_mode_t     i_mode;   // 0755 etc. type bit   
-  fs_uid_t      i_uid;
-  fs_gid_t      i_gid;
-  fs_nlink_t    i_nlink; // link count
-  // fs_off_t      i_size;  // file size in bytes
-  uint64_t      i_mtime; // epoch time of last modification
+struct inode {
+  fs_ino_t        i_ino;
+  fs_inode_type_t i_type;
+  fs_mode_t       i_mode;
+  fs_uid_t        i_uid;
+  fs_gid_t        i_gid;
+  fs_nlink_t      i_nlink;
 
-  char *i_data;
-  size_t i_data_size;
-  size_t i_data_cap;
+  size_t          i_size;    /* file size in bytes */
+  uint64_t        i_mtime;   /* epoch time */
 
-  int i_block[DIRECT_BLOCKS];
-  size_t i_size;
+  int             i_block[DIRECT_BLOCKS]; /* direct blocks, -1 means none */
 
-  // struct timespec i_atime;
-  // struct timespec i_mtime;
-  // struct timespec i_ctime;
-  
   struct super_block *i_sb;
 };
 

@@ -127,9 +127,10 @@ int fs_init(void)
   root_inode->i_size  = 0;
   root_inode->i_mtime = (uint64_t)time(NULL);
 
-  root_inode->i_data      = NULL;
-  root_inode->i_data_size = 0;
-  root_inode->i_data_cap  = 0;
+  for (int i = 0; i < DIRECT_BLOCKS; i++)
+  {
+    root_inode->i_block[i] = -1; 
+  }
 
   struct dentry *root_dentry = malloc(sizeof(struct dentry));
   if (!root_dentry)
