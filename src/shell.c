@@ -8,6 +8,8 @@
 #include "fs/vfs.h"
 #include "fs/dentry.h"
 #include "fs/path.h"
+
+#include "fs/block.h" //test
 /* user define done */
 
 /* define function */
@@ -21,7 +23,7 @@ void run_shell(void);
 void run_shell(void)
 {
   char buf[CMD_BUF];
-
+  printf("Total=%zu Used=%zu Free=%zu\n", block_total_size(), block_used_size(), block_free_size());
   while (1)
   {
     char cwd[256];

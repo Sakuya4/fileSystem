@@ -8,6 +8,7 @@
 #include "inode.h"
 #include "dentry.h"
 #include "path.h"
+#include "block.h"
 
 /* global super block and cwd */
 static struct super_block g_sb;
@@ -144,6 +145,7 @@ int fs_init(void)
 
   g_sb.s_root = root_dentry;
   g_cwd       = root_dentry;
+  block_init();
   return 0;
 }
 

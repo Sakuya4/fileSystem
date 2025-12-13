@@ -16,6 +16,8 @@ SRCS := \
     $(FS_DIR)/path.c \
     $(FS_DIR)/vfs_dir.c \
     $(FS_DIR)/vfs_file.c \
+    $(FS_DIR)/block.c \
+
 
 OBJS := $(SRCS:.c=.o)
 

@@ -18,6 +18,8 @@
 #define FS_IROTH  0004
 #define FS_IWOTH  0002
 #define FS_IXOTH  0001
+
+#define DIRECT_BLOCKS 12 //for block use
 /* define mode bit done */
 
 struct super_block;
@@ -36,12 +38,15 @@ struct inode
   fs_uid_t      i_uid;
   fs_gid_t      i_gid;
   fs_nlink_t    i_nlink; // link count
-  fs_off_t      i_size;  // file size in bytes
+  // fs_off_t      i_size;  // file size in bytes
   uint64_t      i_mtime; // epoch time of last modification
 
   char *i_data;
   size_t i_data_size;
   size_t i_data_cap;
+
+  int i_block[DIRECT_BLOCKS];
+  size_t i_size;
 
   // struct timespec i_atime;
   // struct timespec i_mtime;
