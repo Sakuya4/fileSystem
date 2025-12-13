@@ -1,21 +1,24 @@
 #include <stdio.h>
 
-#include "fs/vfs.h"
+#include "vfs.h"
+#include "meta.h"
 #include "shell.h"
+#include "block.h"
+
 
 int main(void)
 {
-  if (fs_init() != 0)
-  {
-    printf("fs_init failed\n");
-    return 1;
-  }
+    block_init();
 
-  printf("Filesystem mounted. Type commands.\n");
-  printf("Available: mkdir, cd, ls [path], touch, write, cat, rm, rmdir, exit\n");
-  printf("touch <path>, write <path> <text>, cat <path>, rm <path>, rmdir <path>, exit\n");
-  printf("----------------------------------------------\n");
+    if (block_load_image("disk.img") != 0) {
+        printf("first run, empty disk\n");
+    }
 
-  run_shell();
-  return 0;
+    fs_init();
+    meta_load();
+
+    run_shell();
+
+    meta_save();
+    block_save_image("disk.img");
 }

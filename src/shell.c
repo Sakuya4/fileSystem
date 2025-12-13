@@ -122,7 +122,12 @@ void run_shell(void)
       }
       continue;
     }
-
+    /* df */
+    if (strcmp(buf, "df")==0)
+    {
+      printf("Total=%zu Used=%zu Free=%zu\n", block_total_size(), block_used_size(), block_free_size());
+      continue;
+    }
     /* touch <path> */
     if (strncmp(buf, "touch ", 6) == 0)
     {
