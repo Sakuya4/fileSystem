@@ -14,7 +14,8 @@ SRCS := \
     $(FS_DIR)/vfs_cores.c \
     $(FS_DIR)/vfs.c \
     $(FS_DIR)/path.c \
-    $(FS_DIR)/vfs_dir.c
+    $(FS_DIR)/vfs_dir.c \
+    $(FS_DIR)/vfs_file.c \
 
 OBJS := $(SRCS:.c=.o)
 
