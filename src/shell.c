@@ -40,7 +40,7 @@ void run_shell(void)
     }
 
     buf[strcspn(buf, "\n")] = '\0';
-
+    trim(buf);
     if (strlen(buf) == 0)
     {
       continue;
