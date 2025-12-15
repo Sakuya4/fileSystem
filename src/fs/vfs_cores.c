@@ -12,18 +12,18 @@
 
 /* global super block and cwd */
 static struct super_block g_sb;
-static struct dentry      *g_cwd;
-static fs_uid_t g_current_uid = 0;
+static struct dentry *g_cwd;
+static fs_uid_t g_uid = 1000;
 /* --- getters / setters --- */
 
 fs_uid_t fs_get_uid(void)
 {
-  return g_current_uid;
+  return g_uid;
 }
 
 void fs_set_uid(fs_uid_t uid)
 {
-  g_current_uid = uid;
+  g_uid = uid;
 }
 
 struct super_block *fs_get_super(void)

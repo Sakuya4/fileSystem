@@ -8,7 +8,7 @@
 #include "vfs_internal.h"
 #include "inode.h"
 #include "dentry.h"
-
+#include "perm.h"
 /* ---------- helpers ---------- */
 
 static int vfs_ls_dentry(struct dentry *dir)
@@ -99,18 +99,44 @@ int vfs_ls_path(const char *path)
 
 int vfs_ls_long(void)
 {
-  return vfs_ls_long_dentry(fs_get_cwd_dentry());
+  struct dentry *cwd = fs_get_cwd_dentry();
+  if (!cwd || !cwd->d_inode)
+  {
+    return -1;
+  }
+
+  if (fs_perm_check(cwd->d_inode, FS_R_OK) != 0)
+  {
+    return -1;
+  }
+  return vfs_ls_long_dentry(cwd);
 }
+
 
 int vfs_ls_long_path(const char *path)
 {
   struct dentry *target;
 
-  if (!path || path[0] == '\0') return -1;
+  if (!path || path[0] == '\0')
+  {
+    return -1;
+  }
 
   target = vfs_lookup(path);
-  if (!target || !target->d_inode) return -1;
-  if (target->d_inode->i_type != FS_INODE_DIR) return -1;
+  if (!target || !target->d_inode)
+  {
+    return -1;
+  }
+
+  if (target->d_inode->i_type != FS_INODE_DIR)
+  {
+    return -1;
+  }
+
+  if (fs_perm_check(target->d_inode, FS_R_OK) != 0)
+  {
+    return -1;
+  }
 
   return vfs_ls_long_dentry(target);
 }

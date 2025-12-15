@@ -1,14 +1,19 @@
+/* standar library */
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 #include <time.h>
+/* standar library done*/
 
+/* user define library */
 #include "vfs.h"
 #include "vfs_internal.h"
 #include "path.h"
 #include "inode.h"
 #include "dentry.h"
 #include "block.h"
+#include "perm.h"
+/* user define library done */
 
 /* user define function*/
 int vfs_mkdir(const char *path);
@@ -25,8 +30,7 @@ int vfs_cat(const char *path);
 int vfs_rm(const char *path);
 int vfs_rmdir(const char *path);
 
-int vfs_ls_long(void);
-int vfs_ls_long_path(const char *path);
+
 /* user define function done*/
 
 /* =========================
@@ -282,7 +286,10 @@ int vfs_rm(const char *path)
 
   inode  = dent->d_inode;
   parent = dent->d_parent;
-
+  if(fs_perm_check(parent->d_inode, FS_W_OK | FS_X_OK) != 0)
+  {
+    return -1;
+  }
   struct super_block *sb = fs_get_super();
   if (dent == sb->s_root || !parent || parent == dent)
     return -1;
@@ -337,7 +344,10 @@ int vfs_rmdir(const char *path)
 
   inode  = dent->d_inode;
   parent = dent->d_parent;
-
+  if(fs_perm_check(parent->d_inode, FS_W_OK | FS_X_OK) != 0)
+  {
+    return -1;
+  }
   struct super_block *sb = fs_get_super();
   if (dent == sb->s_root || !parent || parent == dent)
     return -1;
@@ -377,15 +387,22 @@ int vfs_cd(const char *path)
 
   trim(buf);
   if (buf[0] == '\0')
+  {
     return -1;
-
+  }
   target = vfs_lookup(buf);
   if (!target || !target->d_inode)
+  {
     return -1;
-
+  }
+  if (fs_perm_check(target->d_inode, FS_X_OK) != 0)
+  {
+    return -1;
+  }
   if (target->d_inode->i_type != FS_INODE_DIR)
+  {
     return -1;
-
+  }
   fs_set_cwd_dentry(target);
   return 0;
 }
@@ -401,7 +418,7 @@ int vfs_chmod(const char *path, int mode777)
   if (!dent || !dent->d_inode) return -1;
 
   ino = dent->d_inode;
-  
+
   ino->i_mode = (ino->i_mode & FS_IFMT) | (mode777 & 0777);
   ino->i_mtime = (uint64_t)time(NULL);
 

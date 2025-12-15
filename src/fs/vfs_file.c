@@ -41,7 +41,7 @@ int vfs_cat(const char *path)
     {
       return -1;
     }
-    if(fs_perm_check(inode, FS_R_OK) != 0)
+    if(fs_perm_check(inode, FS_R_OK)!= 0)
     {
       return -1;
     }
@@ -56,10 +56,6 @@ int vfs_cat(const char *path)
         size_t n = (remain > BLOCK_SIZE) ? BLOCK_SIZE : remain;
         fwrite(buf, 1, n, stdout);
         remain -= n;
-    }
-    if(fs_perm_check(inode, FS_R_OK)!=0)
-    {
-      return -1;    
     }
     printf("\n");
     return 0;

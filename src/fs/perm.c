@@ -1,3 +1,5 @@
+#include <stdint.h>
+
 #include "perm.h"
 #include "vfs_internal.h"
 
@@ -7,7 +9,12 @@ int fs_perm_check(const struct inode *ino, int need)
   {
     return -1;
   }
-
+  /* check sudo or not*/
+  if (fs_get_uid() == 0)
+  {
+    return 0;
+  }
+  /* check sudo or not done */
   fs_uid_t uid = fs_get_uid();
 
   /* root bypass */
