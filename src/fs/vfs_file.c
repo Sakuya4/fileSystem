@@ -13,6 +13,7 @@
 #include "dentry.h"
 #include "path.h"
 #include "block.h"
+#include "perm.h"
 /* user define library done */
 
 /* user define function */
@@ -31,11 +32,19 @@ int vfs_cat(const char *path)
     if (!path) return -1;
 
     dent = vfs_lookup(path);
-    if (!dent || !dent->d_inode) return -1;
-
+    if (!dent || !dent->d_inode)
+    {
+      return -1;
+    }
     inode = dent->d_inode;
-    if (inode->i_type != FS_INODE_FILE) return -1;
-
+    if (inode->i_type != FS_INODE_FILE)
+    {
+      return -1;
+    }
+    if(fs_perm_check(inode, FS_R_OK) != 0)
+    {
+      return -1;
+    }
     size_t remain = inode->i_size;
     for (int i = 0; i < DIRECT_BLOCKS && remain > 0; i++) {
         int blk = inode->i_block[i];
@@ -48,7 +57,10 @@ int vfs_cat(const char *path)
         fwrite(buf, 1, n, stdout);
         remain -= n;
     }
-
+    if(fs_perm_check(inode, FS_R_OK)!=0)
+    {
+      return -1;    
+    }
     printf("\n");
     return 0;
 }
@@ -105,23 +117,34 @@ int vfs_create_file(const char *path)
   }
 
   if (name[0] == '\0')
+  {
     return -1;
+  }
   if (!parent || !parent->d_inode)
+  {
     return -1;
-  if (parent->d_inode->i_type != FS_INODE_DIR)
+  }
+  if(parent->d_inode->i_type != FS_INODE_DIR)
+  {  
     return -1;
-
+  }
+  if(fs_perm_check(parent->d_inode, FS_W_OK | FS_X_OK) != 0)
+  {
+    return -1;
+  }
   if (dentry_find_child(parent, name) != NULL)
+  {
     return -1;
-
+  }
   inode = calloc(1, sizeof(struct inode));
   if (!inode)
+  {
     return -1;
-
+  }
   inode->i_ino   = 0;
   inode->i_type  = FS_INODE_FILE;
   inode->i_mode  = FS_IFREG | 0644;
-  inode->i_uid   = 0;
+  inode->i_uid   = fs_get_uid();
   inode->i_gid   = 0;
   inode->i_nlink = 1;
   inode->i_size  = 0;
@@ -177,7 +200,13 @@ int vfs_write_all(const char *path, const char *data)
     inode = dent->d_inode;
 
     if (inode->i_type != FS_INODE_FILE)
-        return -1;
+    {
+      return -1;
+    }
+    if(fs_perm_check(inode, FS_W_OK) != 0)
+    {
+      return -1;
+    }
 
     len = strlen(data);
 
@@ -228,7 +257,6 @@ int vfs_write_all(const char *path, const char *data)
             return -1;
         }
     }
-
     /* ---------- 更新 inode ---------- */
     inode->i_size  = len;
     inode->i_mtime = (uint64_t)time(NULL);

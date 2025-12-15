@@ -11,12 +11,22 @@
 #include "block.h"
 
 /* user define function*/
-struct dentry *vfs_lookup(const char *path);
-static int  vfs_mkdir_path_internal(const char *path);
 int vfs_mkdir(const char *path);
+int vfs_ls(void);
+int vfs_ls_path(const char *path);
+int vfs_cd(const char *path);
+int vfs_get_cwd(char *buf, size_t size);
+int vfs_chmod(const char *path, int mode777);
+
+int vfs_create_file(const char *path);  /*touch*/
+int vfs_write_all(const char *path, const char *data);
+int vfs_cat(const char *path);
+
 int vfs_rm(const char *path);
 int vfs_rmdir(const char *path);
-int vfs_cd(const char *path);
+
+int vfs_ls_long(void);
+int vfs_ls_long_path(const char *path);
 /* user define function done*/
 
 /* =========================
@@ -380,4 +390,20 @@ int vfs_cd(const char *path)
   return 0;
 }
 
+int vfs_chmod(const char *path, int mode777)
+{
+  struct dentry *dent;
+  struct inode  *ino;
 
+  if (!path) return -1;
+
+  dent = vfs_lookup(path);
+  if (!dent || !dent->d_inode) return -1;
+
+  ino = dent->d_inode;
+  
+  ino->i_mode = (ino->i_mode & FS_IFMT) | (mode777 & 0777);
+  ino->i_mtime = (uint64_t)time(NULL);
+
+  return 0;
+}

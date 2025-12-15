@@ -12,6 +12,7 @@ int vfs_ls(void);
 int vfs_ls_path(const char *path);
 int vfs_cd(const char *path);
 int vfs_get_cwd(char *buf, size_t size);
+int vfs_chmod(const char *path, int mode777);
 
 int vfs_create_file(const char *path);  /*touch*/
 int vfs_write_all(const char *path, const char *data);

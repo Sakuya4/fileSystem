@@ -128,6 +128,64 @@ void run_shell(void)
       printf("Total=%zu Used=%zu Free=%zu\n", block_total_size(), block_used_size(), block_free_size());
       continue;
     }
+    /* chmod <mode> <path> */
+    if (strncmp(buf, "chmod ", 6) == 0)
+    {
+      char *arg = buf + 6;
+
+      while (*arg == ' ' || *arg == '\t')
+      {
+        arg++;
+      }
+
+      if (*arg == '\0')
+      {
+        printf("chmod: mode required\n");
+        continue;
+      }
+
+      char *mode_str = arg;
+
+      while (*arg && *arg != ' ' && *arg != '\t')
+      {
+        arg++;
+      }
+
+      if (*arg == '\0')
+      {
+        printf("chmod: path required\n");
+        continue;
+      }
+
+      *arg = '\0';
+      arg++;
+
+      while (*arg == ' ' || *arg == '\t')
+      {
+        arg++;
+      }
+
+      char *path = arg;
+
+      if (*path == '\0')
+      {
+        printf("chmod: path required\n");
+        continue;
+      }
+
+      int mode = (int)strtol(mode_str, NULL, 8);
+
+      if (vfs_chmod(path, mode) == 0)
+      {
+        printf("chmod ok: %s\n", path);
+      }
+      else
+      {
+        printf("chmod failed: %s\n", path);
+      }
+      continue;
+    }
+
     /* touch <path> */
     if (strncmp(buf, "touch ", 6) == 0)
     {
