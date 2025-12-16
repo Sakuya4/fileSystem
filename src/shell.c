@@ -46,6 +46,7 @@ static void print_help(void)
   printf("  rmdir <path>\n");
   printf("  touch <path>\n");
   printf("  write <path> <text>\n");
+  printf("  vim <path> <text>\n");
   printf("  cat <path>\n");
   printf("  rm <path>\n");
   printf("  chmod <mode(octal)> <path>\n");
@@ -72,8 +73,16 @@ void run_shell(void)
     {
       snprintf(cwd, sizeof(cwd), "?");
     }
-    printf("%s> ", cwd);
-
+    // printf("%s> ", cwd);
+    const char *user = (fs_get_uid() == 0) ? "root" : "user";
+    const char *prompt_char = (fs_get_uid() == 0) ? "#" : "$";
+    printf("\x1b[32m%s@vfs\x1b[0m:"
+       "\x1b[34m%s\x1b[0m"
+       "%s ",
+       user,
+       cwd,
+       prompt_char);
+       
     if (!fgets(buf, sizeof(buf), stdin))
     {
       continue;

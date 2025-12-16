@@ -1,15 +1,29 @@
-/*
- * vfs_dir.c — Directory-related VFS operations (ls / ls -l)
- */
+/* standard library */
 #include <stdio.h>
 #include <time.h>
+/* standard library done*/
 
+/* user define */
 #include "vfs.h"
 #include "vfs_internal.h"
 #include "inode.h"
 #include "dentry.h"
 #include "perm.h"
+/* user define done */
+
+#define C_RESET  "\x1b[0m"
+#define C_BLUE   "\x1b[34m"
+#define C_GREEN  "\x1b[32m"
+
 /* ---------- helpers ---------- */
+static const char *uid_to_name(fs_uid_t uid)
+{
+  if (uid == 0)
+  {
+    return "root";
+  }
+  return "user";
+}
 
 static int vfs_ls_dentry(struct dentry *dir)
 {
@@ -64,11 +78,11 @@ static int vfs_ls_long_dentry(struct dentry *dir)
     tm = localtime(&t);
     if (tm)
       strftime(time_str, sizeof(time_str), "%b %d %H:%M", tm);
-
-    printf("%s %2u %4u %4u %8lld %s %s\n",
+    
+    printf("%s %2u %-4s %4u %8lld %s %s\n",
            mode_str,
            (unsigned)inode->i_nlink,
-           (unsigned)inode->i_uid,
+           uid_to_name(inode->i_uid),
            (unsigned)inode->i_gid,
            (long long)inode->i_size,
            time_str,
