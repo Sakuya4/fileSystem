@@ -24,4 +24,6 @@ int vfs_rmdir(const char *path);
 int vfs_ls_long(void);
 int vfs_ls_long_path(const char *path);
 
+int vfs_vim(const char *path);
+
 #endif /* _VFS_H_ */

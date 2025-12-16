@@ -506,6 +506,39 @@ void run_shell(void)
       SUDO_RESTORE(is_sudo, old_uid);
       continue;
     }
+    /* vim <path> */
+    if (strncmp(buf, "vim ", 4) == 0)
+    {
+      char pathbuf[256];
+      const char *arg = buf + 4;
+
+      while (*arg == ' ' || *arg == '\t')
+      {
+        arg++;
+      }
+
+      strncpy(pathbuf, arg, sizeof(pathbuf) - 1);
+      pathbuf[sizeof(pathbuf) - 1] = '\0';
+
+      trim(pathbuf);
+      remove_multiple_slashes(pathbuf);
+      rstrip_slash(pathbuf);
+
+      if (pathbuf[0] == '\0')
+      {
+        printf("vim: path required\n");
+        SUDO_RESTORE(is_sudo, old_uid);
+        continue;
+      }
+
+      if (vfs_vim(pathbuf) != 0)
+      {
+        printf("vim failed: %s\n", pathbuf);
+      }
+
+      SUDO_RESTORE(is_sudo, old_uid);
+      continue;
+    }
 
     printf("Unknown command: %s\n", buf);
     SUDO_RESTORE(is_sudo, old_uid); 
