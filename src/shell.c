@@ -23,6 +23,7 @@
 /* marco done */
 
 /* define function */
+static void print_help(void);
 void run_shell(void);
 /* define function done*/
 
@@ -31,6 +32,31 @@ void run_shell(void);
 /* define done */
 
 
+static void print_help(void)
+{
+  printf("Commands:\n");
+  printf("  help\n");
+  printf("  exit\n");
+  printf("  df\n");
+  printf("  id\n");
+  printf("  sudo <cmd>\n");
+  printf("  ls [path]\n");
+  printf("  cd <path>\n");
+  printf("  mkdir <path>\n");
+  printf("  rmdir <path>\n");
+  printf("  touch <path>\n");
+  printf("  write <path> <text>\n");
+  printf("  cat <path>\n");
+  printf("  rm <path>\n");
+  printf("  chmod <mode(octal)> <path>\n");
+  printf("\nExamples:\n");
+  printf("  mkdir a\n");
+  printf("  touch a/x\n");
+  printf("  write a/x hello\n");
+  printf("  cat a/x\n");
+  printf("  chmod 555 a\n");
+  printf("  sudo rmdir a\n");
+}
 
 void run_shell(void)
 { 
@@ -90,7 +116,11 @@ void run_shell(void)
       printf("%s", "Bye\n");
       break;
     }
-
+    if (strcmp(buf, "help") == 0)
+    {
+      print_help();
+      continue;
+    }
     /* mkdir <path> */
     if (strncmp(buf, "mkdir ", 6) == 0)
     {
