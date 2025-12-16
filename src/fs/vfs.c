@@ -204,7 +204,10 @@ static int vfs_mkdir_path_internal(const char *path)
   {
     return -1;
   }
-
+   if (fs_perm_check(parent->d_inode, FS_W_OK | FS_X_OK) != 0)
+  {
+    return -1;
+  }
   if (dentry_find_child(parent, name) != NULL)
   {
     return -1;
@@ -220,7 +223,7 @@ static int vfs_mkdir_path_internal(const char *path)
   inode->i_type = FS_INODE_DIR;
   inode->i_mode = FS_IFDIR | 0755;
 
-  inode->i_uid   = 0;
+  inode->i_uid   = fs_get_uid();
   inode->i_gid   = 0;
   inode->i_nlink = 1;
   inode->i_size  = 0;
@@ -286,7 +289,11 @@ int vfs_rm(const char *path)
 
   inode  = dent->d_inode;
   parent = dent->d_parent;
-  if(fs_perm_check(parent->d_inode, FS_W_OK | FS_X_OK) != 0)
+  if (!parent || !parent->d_inode)
+  {
+    return -1;
+  }
+  if (fs_perm_check(parent->d_inode, FS_W_OK | FS_X_OK) != 0)
   {
     return -1;
   }

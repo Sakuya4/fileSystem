@@ -82,7 +82,7 @@ void run_shell(void)
        user,
        cwd,
        prompt_char);
-       
+
     if (!fgets(buf, sizeof(buf), stdin))
     {
       continue;
@@ -116,6 +116,38 @@ void run_shell(void)
       is_sudo = 1;
 
       memmove(buf, cmd, strlen(cmd) + 1);
+    }
+    /* su */
+    if (strncmp(buf, "su", 2) == 0)
+    {
+      char target[16] = "root";
+
+      char *arg = buf + 2;
+      while (*arg == ' ') arg++;
+
+      if (*arg)
+        strncpy(target, arg, sizeof(target)-1);
+
+      char pw[32];
+      printf("Password: ");
+      fgets(pw, sizeof(pw), stdin);
+      pw[strcspn(pw, "\n")] = '\0';
+
+      if (strcmp(target, "root") == 0 && strcmp(pw, "root") == 0)
+      {
+        fs_set_uid(0);
+        printf("switched to root\n");
+      }
+      else if (strcmp(target, "user") == 0 && strcmp(pw, "user") == 0)
+      {
+        fs_set_uid(1000);
+        printf("switched to user\n");
+      }
+      else
+      {
+        printf("Authentication failed\n");
+      }
+      continue;
     }
 
     /* exit */
