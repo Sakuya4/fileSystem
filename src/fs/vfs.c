@@ -58,39 +58,24 @@ struct dentry *vfs_lookup(const char *path)
 
   struct dentry *cur;
   struct super_block *sb = fs_get_super();
+  if (!sb || !sb->s_root)
+  {
+    return NULL;
+  }
 
+  /* =========================
+   *  PATH START POINT
+   * ========================= */
   if (buf[0] == '/')
   {
     /* 絕對路徑 */
     cur = sb->s_root;
+
+    /* "/" */
     if (buf[1] == '\0')
     {
       return cur;
     }
-
-    char *p = buf + 1;
-    char *tok;
-
-    while ((tok = next_token(&p)) != NULL)
-    {
-      if (strcmp(tok, ".") == 0)
-      {
-        continue;
-      }
-      else if (strcmp(tok, "..") == 0)
-      {
-        if (cur->d_parent)
-          cur = cur->d_parent;
-        continue;
-      }
-
-      cur = dentry_find_child(cur, tok);
-      if (!cur)
-      {
-        return NULL;
-      }
-    }
-    return cur;
   }
   else
   {
@@ -100,31 +85,71 @@ struct dentry *vfs_lookup(const char *path)
     {
       return NULL;
     }
+  }
 
-    char *p = buf;
-    char *tok;
+  /* =========================
+   *  TRAVERSE WITH X PERMISSION
+   *  - entering any directory requires FS_X_OK
+   * ========================= */
+  char *p = (buf[0] == '/') ? (buf + 1) : buf;
+  char *tok;
 
-    while ((tok = next_token(&p)) != NULL)
+  while ((tok = next_token(&p)) != NULL)
+  {
+    /* "." */
+    if (strcmp(tok, ".") == 0)
     {
-      if (strcmp(tok, ".") == 0)
-      {
-        continue;
-      }
-      else if (strcmp(tok, "..") == 0)
-      {
-        if (cur->d_parent)
-          cur = cur->d_parent;
-        continue;
-      }
+      continue;
+    }
 
-      cur = dentry_find_child(cur, tok);
-      if (!cur)
+    /* ".." */
+    if (strcmp(tok, "..") == 0)
+    {
+      struct dentry *next = cur->d_parent ? cur->d_parent : cur;
+
+      /* need execute on target dir to enter */
+      if (!next || !next->d_inode)
       {
         return NULL;
       }
+      if (next->d_inode->i_type != FS_INODE_DIR)
+      {
+        return NULL;
+      }
+      if (fs_perm_check(next->d_inode, FS_X_OK) != 0)
+      {
+        return NULL;
+      }
+
+      cur = next;
+      continue;
     }
-    return cur;
+
+    /* normal token: must be able to search current directory (X) */
+    if (!cur || !cur->d_inode)
+    {
+      return NULL;
+    }
+    if (cur->d_inode->i_type != FS_INODE_DIR)
+    {
+      return NULL;
+    }
+    if (fs_perm_check(cur->d_inode, FS_X_OK) != 0)
+    {
+      return NULL;
+    }
+
+    struct dentry *child = dentry_find_child(cur, tok);
+    if (!child)
+    {
+      return NULL;
+    }
+
+    /* if next is a directory, entering it will be checked on next loop iteration */
+    cur = child;
   }
+
+  return cur;
 }
 
 /* =========================
