@@ -18,6 +18,7 @@ fs_uid_t fs_get_uid(void);     // get current user id
 void fs_set_uid(fs_uid_t uid);
 struct dentry *dentry_find_child(struct dentry *parent, const char *name);
 
+
 #endif /* _VFS_INTERNAL_H_ */
 
 

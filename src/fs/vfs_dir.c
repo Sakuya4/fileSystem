@@ -16,15 +16,6 @@
 #define C_GREEN  "\x1b[32m"
 
 /* ---------- helpers ---------- */
-static const char *uid_to_name(fs_uid_t uid)
-{
-  if (uid == 0)
-  {
-    return "root";
-  }
-  return "user";
-}
-
 static int vfs_ls_dentry(struct dentry *dir)
 {
   struct dentry *cur;
@@ -79,14 +70,15 @@ static int vfs_ls_long_dentry(struct dentry *dir)
     if (tm)
       strftime(time_str, sizeof(time_str), "%b %d %H:%M", tm);
     
-    printf("%s %2u %-4s %4u %8lld %s %s\n",
-           mode_str,
-           (unsigned)inode->i_nlink,
-           uid_to_name(inode->i_uid),
-           (unsigned)inode->i_gid,
-           (long long)inode->i_size,
-           time_str,
-           cur->d_name ? cur->d_name : "?");
+    printf("%s %2u %-7s %-7s %8lld %s %s%s\x1b[0m\n",
+          mode_str,
+          (unsigned)inode->i_nlink,
+          fs_uid_name(inode->i_uid),
+          fs_gid_name(inode->i_gid),
+          (long long)inode->i_size,
+          time_str,
+          (inode->i_type == FS_INODE_DIR) ? "\x1b[34m" : "",
+          cur->d_name ? cur->d_name : "?");
   }
   return 0;
 }

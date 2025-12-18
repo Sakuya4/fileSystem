@@ -13,13 +13,15 @@
 /* user define done */
 
 /* marco */
-#define SUDO_RESTORE(_is_sudo, _old_uid) \
+#define SUDO_RESTORE(_is_sudo, _old_uid, _old_gid) \
   do { \
     if ((_is_sudo)) { \
       fs_set_uid((_old_uid)); \
+      fs_set_gid((_old_gid)); \
       (_is_sudo) = 0; \
     } \
   } while (0)
+
 /* marco done */
 
 /* define function */
@@ -62,7 +64,9 @@ static void print_help(void)
 void run_shell(void)
 { 
   int is_sudo=0;
-  fs_uid_t old_uid = 1000; 
+  fs_uid_t old_uid = fs_get_uid();
+  fs_gid_t old_gid = fs_get_gid();
+
   char buf[CMD_BUF];
   printf("Total=%zu Used=%zu Free=%zu\n", block_total_size(), block_used_size(), block_free_size());
   while (1)
@@ -96,64 +100,53 @@ void run_shell(void)
     }
     /* sudo */
     
+   /* sudo <command> */
     if (strncmp(buf, "sudo ", 5) == 0)
     {
       char *cmd = buf + 5;
+      while (*cmd == ' ') cmd++;
 
-      while (*cmd == ' ' || *cmd == '\t')
-      {
-        cmd++;
-      }
-
-      if (*cmd == '\0')
-      {
-        printf("sudo: command required\n");
+      const user_entry_t *root = fs_get_user_by_name("root");
+      if (!root || fs_authenticate(root) != 0) {
+        printf("Authentication failed\n");
         continue;
       }
 
-      old_uid = fs_get_uid();
+      fs_uid_t old_uid = fs_get_uid();
+      fs_gid_t old_gid = fs_get_gid();
+
       fs_set_uid(0);
-      is_sudo = 1;
+      fs_set_gid(0);
 
       memmove(buf, cmd, strlen(cmd) + 1);
     }
+
     /* su */
     if (strncmp(buf, "su", 2) == 0)
     {
-      char target[16] = "root";
+      char *target = buf + 2;
+      while (*target == ' ') target++;
 
-      char *arg = buf + 2;
-      while (*arg == ' ') arg++;
+      if (*target == '\0')
+        target = "root";
 
-      if (*arg)
-        strncpy(target, arg, sizeof(target)-1);
-
-      char pw[32];
-      printf("Password: ");
-      fgets(pw, sizeof(pw), stdin);
-      pw[strcspn(pw, "\n")] = '\0';
-
-      if (strcmp(target, "root") == 0 && strcmp(pw, "root") == 0)
-      {
-        fs_set_uid(0);
-        printf("switched to root\n");
-      }
-      else if (strcmp(target, "user") == 0 && strcmp(pw, "user") == 0)
-      {
-        fs_set_uid(1000);
-        printf("switched to user\n");
-      }
-      else
-      {
+      const user_entry_t *u = fs_get_user_by_name(target);
+      if (!u || fs_authenticate(u) != 0) {
         printf("Authentication failed\n");
+        continue;
       }
+
+      fs_set_uid(u->uid);
+      fs_set_gid(u->gid);
+      printf("switched to %s\n", u->name);
       continue;
     }
+
 
     /* exit */
     if(strcmp(buf, "exit") == 0)
     {
-      SUDO_RESTORE(is_sudo, old_uid);
+      SUDO_RESTORE(is_sudo, old_uid, old_gid);
       printf("%s", "Bye\n");
       break;
     }
@@ -183,7 +176,7 @@ void run_shell(void)
       if (pathbuf[0] == '\0')
       {
         printf("mkdir: path required\n");
-        SUDO_RESTORE(is_sudo, old_uid);
+        SUDO_RESTORE(is_sudo, old_uid, old_gid);
         continue;
       }
 
@@ -196,7 +189,7 @@ void run_shell(void)
         printf("mkdir failed: %s\n", pathbuf);
       }
       
-      SUDO_RESTORE(is_sudo, old_uid);
+      SUDO_RESTORE(is_sudo, old_uid, old_gid);
       continue;
     }
 
@@ -221,7 +214,7 @@ void run_shell(void)
       if (pathbuf[0] == '\0')
       {
         printf("cd: path required\n");
-        SUDO_RESTORE(is_sudo, old_uid);
+        SUDO_RESTORE(is_sudo, old_uid, old_gid);
         continue;
       }
 
@@ -233,14 +226,14 @@ void run_shell(void)
       {
         printf("cd failed: %s\n", pathbuf);
       }
-      SUDO_RESTORE(is_sudo, old_uid);
+      SUDO_RESTORE(is_sudo, old_uid, old_gid);
       continue;
     }
     /* df */
     if (strcmp(buf, "df")==0)
     {
       printf("Total=%zu Used=%zu Free=%zu\n", block_total_size(), block_used_size(), block_free_size());
-      SUDO_RESTORE(is_sudo, old_uid);
+      SUDO_RESTORE(is_sudo, old_uid, old_gid);
       continue;
     }
     /* chmod <mode> <path> */
@@ -256,7 +249,7 @@ void run_shell(void)
       if (*arg == '\0')
       {
         printf("chmod: mode required\n");
-        SUDO_RESTORE(is_sudo, old_uid);
+        SUDO_RESTORE(is_sudo, old_uid, old_gid);
         continue;
       }
 
@@ -270,7 +263,7 @@ void run_shell(void)
       if (*arg == '\0')
       {
         printf("chmod: path required\n");
-        SUDO_RESTORE(is_sudo, old_uid);
+        SUDO_RESTORE(is_sudo, old_uid, old_gid);
         continue;
       }
 
@@ -287,7 +280,7 @@ void run_shell(void)
       if (*path == '\0')
       {
         printf("chmod: path required\n");
-        SUDO_RESTORE(is_sudo, old_uid);
+        SUDO_RESTORE(is_sudo, old_uid, old_gid);
         continue;
       }
 
@@ -301,14 +294,14 @@ void run_shell(void)
       {
         printf("chmod failed: %s\n", path);
       }
-      SUDO_RESTORE(is_sudo, old_uid);
+      SUDO_RESTORE(is_sudo, old_uid, old_gid);
       continue;
     }
     /* check user */
     if (strcmp(buf, "id") == 0)
     {
       printf("uid=%d\n", (int)fs_get_uid());
-      SUDO_RESTORE(is_sudo, old_uid);
+      SUDO_RESTORE(is_sudo, old_uid, old_gid);
       continue;
     }
 
@@ -333,7 +326,7 @@ void run_shell(void)
       if (pathbuf[0] == '\0')
       {
         printf("touch: path required\n");
-        SUDO_RESTORE(is_sudo, old_uid);
+        SUDO_RESTORE(is_sudo, old_uid, old_gid);
         continue;
       }
 
@@ -345,7 +338,7 @@ void run_shell(void)
       {
         printf("touch failed: %s\n", pathbuf);
       }
-      SUDO_RESTORE(is_sudo, old_uid);
+      SUDO_RESTORE(is_sudo, old_uid, old_gid);
       continue;
     }
 
@@ -365,7 +358,7 @@ void run_shell(void)
       if (*arg == '\0')
       {
         printf("write: path required\n");
-        SUDO_RESTORE(is_sudo, old_uid);
+        SUDO_RESTORE(is_sudo, old_uid, old_gid);
         continue;
       }
 
@@ -380,7 +373,7 @@ void run_shell(void)
       if (*arg == '\0')
       {
         printf("write: data required\n");
-        SUDO_RESTORE(is_sudo, old_uid);
+        SUDO_RESTORE(is_sudo, old_uid, old_gid);
         continue;
       }
 
@@ -410,7 +403,7 @@ void run_shell(void)
       {
         printf("write failed: %s\n", pathbuf);
       }
-      SUDO_RESTORE(is_sudo, old_uid);
+      SUDO_RESTORE(is_sudo, old_uid, old_gid);
       continue;
     }
 
@@ -435,7 +428,7 @@ void run_shell(void)
       if (pathbuf[0] == '\0')
       {
         printf("cat: path required\n");
-        SUDO_RESTORE(is_sudo, old_uid);
+        SUDO_RESTORE(is_sudo, old_uid, old_gid);
         continue;
       }
 
@@ -443,7 +436,7 @@ void run_shell(void)
       {
         printf("cat failed: %s\n", pathbuf);
       }
-      SUDO_RESTORE(is_sudo, old_uid);
+      SUDO_RESTORE(is_sudo, old_uid, old_gid);
       continue;
     }
 
@@ -468,7 +461,7 @@ void run_shell(void)
       if (pathbuf[0] == '\0')
       {
         printf("rm: path required\n");
-        SUDO_RESTORE(is_sudo, old_uid);
+        SUDO_RESTORE(is_sudo, old_uid, old_gid);
         continue;
       }
 
@@ -480,7 +473,7 @@ void run_shell(void)
       {
         printf("rm failed: %s\n", pathbuf);
       }
-      SUDO_RESTORE(is_sudo, old_uid);
+      SUDO_RESTORE(is_sudo, old_uid, old_gid);
       continue;
     }
 
@@ -505,7 +498,7 @@ void run_shell(void)
       if (pathbuf[0] == '\0')
       {
         printf("rmdir: path required\n");
-        SUDO_RESTORE(is_sudo, old_uid);
+        SUDO_RESTORE(is_sudo, old_uid, old_gid);
         continue;
       }
 
@@ -517,7 +510,7 @@ void run_shell(void)
       {
         printf("rmdir failed: %s\n", pathbuf);
       }
-      SUDO_RESTORE(is_sudo, old_uid);
+      SUDO_RESTORE(is_sudo, old_uid, old_gid);
       continue;
     }
 
@@ -544,7 +537,7 @@ void run_shell(void)
           printf("ls failed: %s\n", arg);
         }
       }
-      SUDO_RESTORE(is_sudo, old_uid);
+      SUDO_RESTORE(is_sudo, old_uid, old_gid);
       continue;
     }
     /* vim <path> */
@@ -568,7 +561,7 @@ void run_shell(void)
       if (pathbuf[0] == '\0')
       {
         printf("vim: path required\n");
-        SUDO_RESTORE(is_sudo, old_uid);
+        SUDO_RESTORE(is_sudo, old_uid, old_gid);
         continue;
       }
 
@@ -577,12 +570,12 @@ void run_shell(void)
         printf("vim failed: %s\n", pathbuf);
       }
 
-      SUDO_RESTORE(is_sudo, old_uid);
+      SUDO_RESTORE(is_sudo, old_uid, old_gid);
       continue;
     }
 
     printf("Unknown command: %s\n", buf);
-    SUDO_RESTORE(is_sudo, old_uid); 
+    SUDO_RESTORE(is_sudo, old_uid, old_gid); 
    }
 
 }

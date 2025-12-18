@@ -21,7 +21,7 @@ int vfs_ls(void);
 int vfs_ls_path(const char *path);
 int vfs_cd(const char *path);
 int vfs_get_cwd(char *buf, size_t size);
-int vfs_chmod(const char *path, int mode777);
+int vfs_chmod(const char *path, int mode);
 
 int vfs_create_file(const char *path);  /*touch*/
 int vfs_write_all(const char *path, const char *data);
@@ -224,7 +224,7 @@ static int vfs_mkdir_path_internal(const char *path)
   inode->i_mode = FS_IFDIR | 0755;
 
   inode->i_uid   = fs_get_uid();
-  inode->i_gid   = 0;
+  inode->i_gid   = fs_get_uid();
   inode->i_nlink = 1;
   inode->i_size  = 0;
   inode->i_mtime = (uint64_t)time(NULL);
@@ -414,20 +414,19 @@ int vfs_cd(const char *path)
   return 0;
 }
 
-int vfs_chmod(const char *path, int mode777)
+int vfs_chmod(const char *path, int mode)
 {
-  struct dentry *dent;
-  struct inode  *ino;
+  struct dentry *dent = vfs_lookup(path);
+  if (!dent || !dent->d_inode)
+    return -1;
 
-  if (!path) return -1;
+  /* 只有 root */
+  if (fs_get_uid() != 0)
+    return -1;
 
-  dent = vfs_lookup(path);
-  if (!dent || !dent->d_inode) return -1;
+  dent->d_inode->i_mode =
+      (dent->d_inode->i_mode & FS_IFDIR) | (mode & 0777);
 
-  ino = dent->d_inode;
-
-  ino->i_mode = (ino->i_mode & FS_IFMT) | (mode777 & 0777);
-  ino->i_mtime = (uint64_t)time(NULL);
-
+  dent->d_inode->i_mtime = (uint64_t)time(NULL);
   return 0;
 }

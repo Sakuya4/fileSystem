@@ -141,7 +141,7 @@ int vfs_create_file(const char *path)
   inode->i_type  = FS_INODE_FILE;
   inode->i_mode  = FS_IFREG | 0644;
   inode->i_uid   = fs_get_uid();
-  inode->i_gid   = 0;
+  inode->i_gid   = fs_get_gid();
   inode->i_nlink = 1;
   inode->i_size  = 0;
   inode->i_mtime = (uint64_t)time(NULL);

@@ -30,7 +30,6 @@ int block_init(void)
 static uint8_t block_data[BLOCK_COUNT][BLOCK_SIZE];
 static uint8_t block_bitmap[BLOCK_COUNT]; /* 0 free, 1 used */
 
-/* 可選：給 image 一個 magic，避免讀錯檔 */
 #define IMG_MAGIC 0x56465331u /* 'VFS1' */
 
 typedef struct {
