@@ -26,4 +26,7 @@ int vfs_ls_long_path(const char *path);
 
 int vfs_vim(const char *path);
 
+int vfs_import(const char *host_path, const char *vfs_path);
+int vfs_export(const char *vfs_path, const char *host_path);
+
 #endif /* _VFS_H_ */

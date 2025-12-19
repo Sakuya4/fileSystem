@@ -540,6 +540,93 @@ void run_shell(void)
       SUDO_RESTORE(is_sudo, old_uid, old_gid);
       continue;
     }
+    /* import <host_path> <vfs_path> */
+if (strncmp(buf, "import ", 7) == 0)
+{
+  char *arg = buf + 7;
+  while (*arg == ' ' || *arg == '\t') arg++;
+
+  if (*arg == '\0')
+  {
+    printf("import: host_path required\n");
+    continue;
+  }
+
+  char *host = arg;
+  while (*arg && *arg != ' ' && *arg != '\t') arg++;
+
+  if (*arg == '\0')
+  {
+    printf("import: vfs_path required\n");
+    continue;
+  }
+
+  *arg = '\0';
+  arg++;
+  while (*arg == ' ' || *arg == '\t') arg++;
+
+  char *vpath = arg;
+  if (*vpath == '\0')
+  {
+    printf("import: vfs_path required\n");
+    continue;
+  }
+
+  if (vfs_import(host, vpath) == 0)
+  {
+    printf("import ok: %s -> %s\n", host, vpath);
+  }
+  else
+  {
+    printf("import failed: %s -> %s\n", host, vpath);
+  }
+  continue;
+}
+
+  /* export <vfs_path> <host_path> */
+  if (strncmp(buf, "export ", 7) == 0)
+  {
+    char *arg = buf + 7;
+    while (*arg == ' ' || *arg == '\t') arg++;
+
+    if (*arg == '\0')
+    {
+      printf("export: vfs_path required\n");
+      continue;
+    }
+
+    char *vpath = arg;
+    while (*arg && *arg != ' ' && *arg != '\t') arg++;
+
+    if (*arg == '\0')
+    {
+      printf("export: host_path required\n");
+      continue;
+    }
+
+    *arg = '\0';
+    arg++;
+    while (*arg == ' ' || *arg == '\t') arg++;
+
+    char *host = arg;
+    if (*host == '\0')
+    {
+      printf("export: host_path required\n");
+      continue;
+    }
+
+    if (vfs_export(vpath, host) == 0)
+    {
+      printf("export ok: %s -> %s\n", vpath, host);
+    }
+    else
+    {
+      printf("export failed: %s -> %s\n", vpath, host);
+    }
+    continue;
+  }
+
+
     /* vim <path> */
     if (strncmp(buf, "vim ", 4) == 0)
     {

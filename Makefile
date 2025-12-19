@@ -19,7 +19,8 @@ SRCS := \
     $(FS_DIR)/block.c \
     $(FS_DIR)/meta.c \
     $(FS_DIR)/perm.c \
-    $(FS_DIR)/vfs_vim.c 
+    $(FS_DIR)/vfs_vim.c \
+    $(FS_DIR)/vfs_io.c 
 
 
 OBJS := $(SRCS:.c=.o)
