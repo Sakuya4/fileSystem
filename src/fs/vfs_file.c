@@ -260,4 +260,41 @@ int vfs_write_all(const char *path, const char *data)
     return 0;
 }
 
-/* function done */
+void vfs_stat(const char *path) {
+  struct dentry *dent;
+  struct inode *node;
+
+  if (!path) return;
+
+  dent = vfs_lookup(path);
+  if (!dent || !dent->d_inode) {
+    printf("stat: '%s': No such file or directory\n", path);
+    return;
+  }
+
+  node = dent->d_inode;
+  if (!node) return;
+
+  int block_count = 0;
+  for (int i = 0; i < DIRECT_BLOCKS; i++) {
+    if (node->i_block[i] >= 0) block_count++;
+  }
+
+  printf("  File: %s\n", path);
+  printf("  Size: %zu \tBlocks: %d \tType: %s\n",
+       node->i_size,
+       block_count,
+       (node->i_type == FS_INODE_DIR ? "directory" : "regular file"));
+
+  printf("  Inode: %llu \tLinks: %u\n", (unsigned long long)node->i_ino, (unsigned)node->i_nlink);
+  printf("  Access: (0%o) \tUid: %u \tGid: %u\n", node->i_mode, (unsigned)node->i_uid, (unsigned)node->i_gid);
+
+  char time_buf[26];
+  struct tm *tm_info = localtime((time_t *)&node->i_mtime);
+  if (tm_info)
+    strftime(time_buf, 26, "%Y-%m-%d %H:%M:%S", tm_info);
+  else
+    strncpy(time_buf, "(unknown)", sizeof(time_buf));
+
+  printf("  Modify: %s\n", time_buf);
+}

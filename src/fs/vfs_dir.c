@@ -1,6 +1,7 @@
 /* standard library */
 #include <stdio.h>
 #include <time.h>
+#include <string.h>
 /* standard library done*/
 
 /* user define */
@@ -145,4 +146,49 @@ int vfs_ls_long_path(const char *path)
   }
 
   return vfs_ls_long_dentry(target);
+}
+
+static void _vfs_tree_rec(struct dentry *dir, int level)
+{
+  if (!dir || !dir->d_inode) return;
+
+  struct dentry *cur;
+  for (cur = dir->d_child; cur != NULL; cur = cur->d_sibling)
+  {
+    if (!cur->d_name) continue;
+    if (strcmp(cur->d_name, ".") == 0 || strcmp(cur->d_name, "..") == 0)
+      continue;
+
+    for (int j = 0; j < level; j++)
+      printf("|   ");
+
+    if (cur->d_inode && cur->d_inode->i_type == FS_INODE_DIR)
+    {
+      printf("|-- %s%s\x1b[0m\n", "\x1b[34m", cur->d_name);
+      _vfs_tree_rec(cur, level + 1);
+    }
+    else
+    {
+      printf("|-- %s\n", cur->d_name);
+    }
+  }
+}
+
+void vfs_tree(const char *path)
+{
+  struct dentry *start = NULL;
+
+  if (!path || path[0] == '\0')
+    start = fs_get_cwd_dentry();
+  else
+    start = vfs_lookup(path);
+
+  if (!start || !start->d_inode || start->d_inode->i_type != FS_INODE_DIR)
+  {
+    printf("tree: %s: No such file or directory\n", path ? path : "");
+    return;
+  }
+
+  printf("%s\n", path ? path : "/");
+  _vfs_tree_rec(start, 0);
 }
