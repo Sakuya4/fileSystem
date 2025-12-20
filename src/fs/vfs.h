@@ -34,8 +34,8 @@ int vfs_export(const char *vfs_path, const char *host_path);
 
 int vfs_open(const char *path, const char *mode);
 int vfs_close(int fd);
-ssize_t vfs_read(int fd, void *buf, size_t count);
-ssize_t vfs_write(int fd, const void *buf, size_t count);
+size_t vfs_read(int fd, void *buf, size_t count);
+size_t vfs_write(int fd, const void *buf, size_t count);
 
 void vfs_tree(const char *path);
 
