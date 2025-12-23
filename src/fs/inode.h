@@ -19,6 +19,7 @@
 #define FS_IROTH  0004
 #define FS_IWOTH  0002
 #define FS_IXOTH  0001
+/* mode bits done */
 
 #define DIRECT_BLOCKS 12
 

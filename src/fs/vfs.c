@@ -303,15 +303,18 @@ int vfs_rm(const char *path)
   rstrip_slash(buf);
 
   if (buf[0] == '\0')
+  { 
     return -1;
-
+  }
   if (strcmp(buf, "/") == 0)
+  {
     return -1;
-
+  }
   dent = vfs_lookup(buf);
   if (!dent || !dent->d_inode)
+  {
     return -1;
-
+  }
   inode  = dent->d_inode;
   parent = dent->d_parent;
   if (!parent || !parent->d_inode)
@@ -324,14 +327,17 @@ int vfs_rm(const char *path)
   }
   struct super_block *sb = fs_get_super();
   if (dent == sb->s_root || !parent || parent == dent)
+  {
     return -1;
-
+  }
   if (inode->i_type != FS_INODE_FILE)
+  {
     return -1;
-
+  }
   if (dentry_remove_child(parent, dent) != 0)
+  {
     return -1;
-
+  }
   for (int i = 0; i < DIRECT_BLOCKS; i++) {
     if (inode->i_block[i] >= 0) {
       block_free(inode->i_block[i]);
@@ -365,15 +371,18 @@ int vfs_rmdir(const char *path)
   rstrip_slash(buf);
 
   if (buf[0] == '\0')
+  {
     return -1;
-
+  }
   if (strcmp(buf, "/") == 0)
+  {
     return -1;
-
+  }
   dent = vfs_lookup(buf);
   if (!dent || !dent->d_inode)
+  {
     return -1;
-
+  }
   inode  = dent->d_inode;
   parent = dent->d_parent;
   if(fs_perm_check(parent->d_inode, FS_W_OK | FS_X_OK) != 0)
@@ -382,21 +391,27 @@ int vfs_rmdir(const char *path)
   }
   struct super_block *sb = fs_get_super();
   if (dent == sb->s_root || !parent || parent == dent)
+  {
     return -1;
-
+  }
   if (inode->i_type != FS_INODE_DIR)
+  {
     return -1;
-
+  }
   if (dent->d_child != NULL)
+  {
     return -1;  /* not empty */
-
+  }
   if (dentry_remove_child(parent, dent) != 0)
+  {
     return -1;
-
+  }
   free(inode);
 
   if (dent->d_name)
+  {
     free(dent->d_name);
+  }
   free(dent);
 
   return 0;
@@ -443,12 +458,14 @@ int vfs_chmod(const char *path, int mode)
 {
   struct dentry *dent = vfs_lookup(path);
   if (!dent || !dent->d_inode)
+  {
     return -1;
-
-  /* 只有 root */
+  }
+  /* only root */
   if (fs_get_uid() != 0)
+  {
     return -1;
-
+  }
   dent->d_inode->i_mode =
       (dent->d_inode->i_mode & FS_IFDIR) | (mode & 0777);
 

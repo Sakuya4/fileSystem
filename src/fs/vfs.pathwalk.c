@@ -32,8 +32,9 @@ struct dentry *vfs_lookup(const char *path)
   {
     cur = fs_get_super()->s_root;
     if (buf[1] == '\0')
+    {
       return cur;
-
+    }
     p = buf + 1;
   }
   else
@@ -45,21 +46,27 @@ struct dentry *vfs_lookup(const char *path)
   while ((tok = path_next_token(&p)) != NULL)
   {
     if (tok[0] == '\0')
+    {
       continue;
-
+    }
     if (strcmp(tok, ".") == 0)
+    {
       continue;
-
+    }
     if (strcmp(tok, "..") == 0)
     {
       if (cur && cur->d_parent)
+      {
         cur = cur->d_parent;
+      }
       continue;
     }
 
     cur = dentry_find_child(cur, tok);
     if (cur == NULL)
+    {
       return NULL;
+    }
   }
 
   return cur;

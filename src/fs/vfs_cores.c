@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <time.h>
+#include <stdint.h>
 
 #include "vfs.h"
 #include "vfs_internal.h"
@@ -13,28 +14,28 @@
 /* global super block and cwd */
 static struct super_block g_sb;
 static struct dentry *g_cwd;
-static fs_uid_t g_current_uid = 1000;
-static fs_gid_t g_current_gid = 1000;
+static fs_uid_t g_uid = 1000;
+static fs_gid_t g_gid = 1000;
 /* --- getters / setters --- */
 
 fs_uid_t fs_get_uid(void)
 {
-  return g_current_uid;
+  return g_uid;
 }
 
 void fs_set_uid(fs_uid_t uid)
 {
-  g_current_uid = uid;
+  g_uid = uid;
 }
 
 fs_gid_t fs_get_gid(void)
 {
-  return g_current_gid;
+  return g_gid;
 }
 
 void fs_set_gid(fs_gid_t gid)
 {
-  g_current_gid = gid;
+  g_gid = gid;
 }
 
 struct super_block *fs_get_super(void)
@@ -85,8 +86,10 @@ int dentry_remove_child(struct dentry *parent, struct dentry *child)
   struct dentry *cur;
 
   if (!parent || !child)
+  {
     return -1;
-
+  }
+  
   cur = parent->d_child;
   while (cur && cur != child)
   {
@@ -98,10 +101,14 @@ int dentry_remove_child(struct dentry *parent, struct dentry *child)
     return -1;
 
   if (!prev)
+  {
     parent->d_child = cur->d_sibling;
+  }
   else
+  {
     prev->d_sibling = cur->d_sibling;
-
+  }
+  
   child->d_parent  = NULL;
   child->d_sibling = NULL;
   return 0;
@@ -112,12 +119,15 @@ struct dentry *dentry_find_child(struct dentry *parent, const char *name)
   struct dentry *cur;
 
   if (!parent || !name)
+  {
     return NULL;
-
+  }
   for (cur = parent->d_child; cur != NULL; cur = cur->d_sibling)
   {
     if (cur->d_name && strcmp(cur->d_name, name) == 0)
+    {
       return cur;
+    }
   }
   return NULL;
 }
@@ -162,7 +172,7 @@ int fs_init(void)
 
   memset(root_dentry, 0, sizeof(*root_dentry));
   root_dentry->d_name   = fs_strdup("/");
-  root_dentry->d_parent = root_dentry; /* root 的 parent 指自己 */
+  root_dentry->d_parent = root_dentry; /* root->parent to itself */
   root_dentry->d_inode  = root_inode;
 
   g_sb.s_root = root_dentry;
@@ -206,9 +216,13 @@ int vfs_get_cwd(char *buf, size_t size)
   while (d && d != g_sb.s_root && depth < 64)
   {
     if (d->d_name)
+    {
       names[depth++] = d->d_name;
+    }
     else
+    {
       names[depth++] = "?";
+    }
     d = d->d_parent;
   }
 
