@@ -18,12 +18,15 @@ struct dentry *vfs_lookup(const char *path)
   char *tok;
 
   if (path == NULL || *path == '\0')
+  {
     return NULL;
-
+  }
   /* copy & normalize */
   path_normalize(buf, sizeof(buf), path);
   if (buf[0] == '\0')
+  {
     return NULL;
+  }
 
   if (buf[0] == '/')
   {
