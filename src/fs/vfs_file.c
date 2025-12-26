@@ -29,8 +29,10 @@ int vfs_cat(const char *path)
     struct dentry *dent;
     struct inode  *inode;
 
-    if (!path) return -1;
-
+    if (!path)
+    {
+      return -1;
+    }
     dent = vfs_lookup(path);
     if (!dent || !dent->d_inode)
     {
@@ -46,16 +48,19 @@ int vfs_cat(const char *path)
       return -1;
     }
     size_t remain = inode->i_size;
-    for (int i = 0; i < DIRECT_BLOCKS && remain > 0; i++) {
-        int blk = inode->i_block[i];
-        if (blk < 0) break;
+    for (int i = 0; i < DIRECT_BLOCKS && remain > 0; i++)
+    {
+      int blk = inode->i_block[i];
+      if (blk < 0) break;
 
-        uint8_t buf[BLOCK_SIZE];
-        if (block_read(blk, buf) != 0) return -1;
-
-        size_t n = (remain > BLOCK_SIZE) ? BLOCK_SIZE : remain;
-        fwrite(buf, 1, n, stdout);
-        remain -= n;
+      uint8_t buf[BLOCK_SIZE];
+      if (block_read(blk, buf) != 0)
+      {
+        return -1;
+      }
+      size_t n = (remain > BLOCK_SIZE) ? BLOCK_SIZE : remain;
+      fwrite(buf, 1, n, stdout);
+      remain -= n;
     }
     printf("\n");
     return 0;
@@ -73,8 +78,9 @@ int vfs_create_file(const char *path)
   char *name;
 
   if (!path || path[0] == '\0')
+  {
     return -1;
-
+  }
   strncpy(buf, path, sizeof(buf) - 1);
   buf[sizeof(buf) - 1] = '\0';
 
@@ -83,10 +89,13 @@ int vfs_create_file(const char *path)
   rstrip_slash(buf);
 
   if (buf[0] == '\0')
+  {
     return -1;
+  }
   if (strcmp(buf, "/") == 0)
+  {
     return -1;
-
+  }
   last_slash = strrchr(buf, '/');
 
   if (last_slash == NULL)
@@ -105,10 +114,11 @@ int vfs_create_file(const char *path)
     {
       *last_slash = '\0';
       name        = last_slash + 1;
-
-      parent = vfs_lookup(buf);
+      parent      = vfs_lookup(buf);
       if (!parent)
+      {
         return -1;
+      }
     }
   }
 
@@ -187,12 +197,14 @@ int vfs_write_all(const char *path, const char *data)
     size_t i, j;
 
     if (!path || !data)
-        return -1;
-
+    {
+      return -1;
+    }
     dent = vfs_lookup(path);
     if (!dent || !dent->d_inode)
-        return -1;
-
+    {
+      return -1;
+    }
     inode = dent->d_inode;
 
     if (inode->i_type != FS_INODE_FILE)
@@ -206,54 +218,63 @@ int vfs_write_all(const char *path, const char *data)
 
     len = strlen(data);
 
-    /* ---------- (2) 先檢查大小 ---------- */
+
     need_blocks = (len + BLOCK_SIZE - 1) / BLOCK_SIZE;
     if (need_blocks > DIRECT_BLOCKS)
-        return -1;  /* file too large */
-
-    /* ---------- 釋放舊 blocks ---------- */
-    for (i = 0; i < DIRECT_BLOCKS; i++) {
-        if (inode->i_block[i] >= 0) {
-            block_free(inode->i_block[i]);
-            inode->i_block[i] = -1;
-        }
+    {
+      return -1;  /* file too large */
     }
 
-    /* ---------- alloc + write ---------- */
-    for (i = 0; i < need_blocks; i++) {
-        int blk = block_alloc();
-        if (blk < 0) {
-            /* rollback */
-            for (j = 0; j < i; j++) {
-                block_free(inode->i_block[j]);
-                inode->i_block[j] = -1;
-            }
-            return -1;
-        }
-
-        inode->i_block[i] = blk;
-
-        size_t offset = i * BLOCK_SIZE;
-        size_t remain = len - offset;
-        size_t write_size = remain > BLOCK_SIZE ? BLOCK_SIZE : remain;
-
-        uint8_t buf[BLOCK_SIZE];
-        memset(buf, 0, BLOCK_SIZE);
-        memcpy(buf, data + offset, write_size);
-
-        /* ---------- (3) block_write 失敗檢查 ---------- */
-        if (block_write(blk, buf) != 0) {
-            /* rollback */
-            for (j = 0; j <= i; j++) {
-                if (inode->i_block[j] >= 0) {
-                    block_free(inode->i_block[j]);
-                    inode->i_block[j] = -1;
-                }
-            }
-            return -1;
-        }
+    for (i = 0; i < DIRECT_BLOCKS; i++)
+    {
+      if (inode->i_block[i] >= 0) 
+      {
+        block_free(inode->i_block[i]);
+        inode->i_block[i] = -1;
+      }
     }
-    /* ---------- 更新 inode ---------- */
+
+
+    for (i = 0; i < need_blocks; i++) 
+    {
+      int blk = block_alloc();
+      if (blk < 0) 
+      {
+          /* rollback */
+        for (j = 0; j < i; j++)
+        {
+          block_free(inode->i_block[j]);
+          inode->i_block[j] = -1;
+        }
+        return -1;
+      }
+
+      inode->i_block[i] = blk;
+
+      size_t offset = i * BLOCK_SIZE;
+      size_t remain = len - offset;
+      size_t write_size = remain > BLOCK_SIZE ? BLOCK_SIZE : remain;
+
+      uint8_t buf[BLOCK_SIZE];
+      memset(buf, 0, BLOCK_SIZE);
+      memcpy(buf, data + offset, write_size);
+
+
+      if (block_write(blk, buf) != 0) 
+      {
+        /* rollback */
+        for (j = 0; j <= i; j++)
+         {
+           if (inode->i_block[j] >= 0)
+           {
+             block_free(inode->i_block[j]);
+             inode->i_block[j] = -1;
+           }
+         }
+        return -1;
+      }
+    }
+
     inode->i_size  = len;
     inode->i_mtime = (uint64_t)time(NULL);
 

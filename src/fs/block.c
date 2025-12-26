@@ -26,7 +26,6 @@ int block_init(void)
 
 #include "block.h"
 
-/* 你原本就有的全域 */
 static uint8_t block_data[BLOCK_COUNT][BLOCK_SIZE];
 static uint8_t block_bitmap[BLOCK_COUNT]; /* 0 free, 1 used */
 
@@ -155,7 +154,6 @@ void block_free(int blkno)
         return;
 
     block_bitmap[blkno] = 0;
-    /* 可選：free 時清掉資料 */
     memset(block_data[blkno], 0, BLOCK_SIZE);
 }
 

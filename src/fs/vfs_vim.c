@@ -151,7 +151,7 @@ int vfs_vim(const char *path)
     (void)vfs_read_all_into_buf(pathbuf, buf, sizeof(buf));
   }
 
-  printf("----- mini-vim: %s -----\n", pathbuf);
+  printf("----- vim: %s -----\n", pathbuf);
   vim_print_help();
   printf("\n");
   printf("%s", buf);
@@ -270,6 +270,6 @@ int vfs_vim(const char *path)
     }
   }
 
-  printf("----- leave mini-vim -----\n");
+  printf("----- leave vim -----\n");
   return 0;
 }
