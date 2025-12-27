@@ -10,7 +10,8 @@ int main(void)
 {
     block_init();
 
-    if (block_load_image("disk.img") != 0) {
+    if (block_load_image("disk.img") != 0)
+    {
         printf("first run, empty disk\n");
     }
 
