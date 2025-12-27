@@ -10,7 +10,8 @@
 #define FS_X_OK  0x1
 
 /* user / group */
-typedef struct {
+typedef struct
+{
   const char *name;
   fs_uid_t uid;
   fs_gid_t gid;
