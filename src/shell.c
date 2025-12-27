@@ -37,33 +37,34 @@ void run_shell(void);
 static void print_help(void)
 {
   printf("Commands:\n");
-  printf("  help\n");
-  printf("  exit\n");
-  printf("  df\n");
-  printf("  id\n");
-  printf("  sudo <cmd>\n");
-  printf("  ls [path]\n");
-  printf("  tree [path]\n");
-  printf("  cd <path>\n");
-  printf("  mkdir <path>\n");
-  printf("  rmdir <path>\n");
-  printf("  touch <path>\n");
-  printf("  stat <path>\n");
-  printf("  cp <src> <dest>\n");
-  printf("  write <path> <text>\n");
-  printf("  vim <path> <text>\n");
-  printf("  cat <path>\n");
-  printf("  rm <path>\n");
-  printf("  chmod <mode(octal)> <path>\n");
-  printf("  import <host_path> <vfs_path>\n");
-  printf("  export <vfs_path> <host_path>\n");
+  printf("  help                         - Show this help message\n");
+  printf("  exit                         - Exit the shell\n");
+  printf("  df                           - Show disk usage information\n");
+  printf("  id                           - Show current user identity\n");
+  printf("  sudo <cmd>                   - Execute command as superuser\n");
+  printf("  ls [path]                    - List files in a directory\n");
+  printf("  tree [path]                  - Display directory structure as a tree\n");
+  printf("  cd <path>                    - Change current directory\n");
+  printf("  mkdir <path>                 - Create a new directory\n");
+  printf("  rmdir <path>                 - Remove an empty directory\n");
+  printf("  touch <path>                 - Create an empty file\n");
+  printf("  stat <path>                  - Show file or directory status\n");
+  printf("  cp <src> <dest>              - Copy file from source to destination\n");
+  printf("  write <path> <text>          - Write text to a file (overwrite)\n");
+  printf("  vim <path> <text>            - Edit file content (simple editor)\n");
+  printf("  cat <path>                   - Display file contents\n");
+  printf("  rm <path>                    - Remove a file\n");
+  printf("  chmod <mode(octal)> <path>   - Change file permissions\n");
+  printf("  import <host_path> <vfs_path>- Import file from host to VFS\n");
+  printf("  export <vfs_path> <host_path>- Export file from VFS to host\n");
+
   printf("\nExamples:\n");
-  printf("  mkdir a\n");
-  printf("  touch a/x\n");
-  printf("  write a/x hello\n");
-  printf("  cat a/x\n");
-  printf("  chmod 555 a\n");
-  printf("  sudo rmdir a\n");
+  printf("  mkdir a                      - Create directory 'a'\n");
+  printf("  touch a/x                    - Create file 'x' inside directory 'a'\n");
+  printf("  write a/x hello              - Write 'hello' into file 'a/x'\n");
+  printf("  cat a/x                      - Display contents of 'a/x'\n");
+  printf("  chmod 555 a                  - Set directory 'a' to read-only\n");
+  printf("  sudo rmdir a                 - Remove directory 'a' as superuser\n");
 }
 
 void run_shell(void)
