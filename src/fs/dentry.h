@@ -1,4 +1,5 @@
 #ifndef _DENRTY_H_
+
 #define _DENRTY_H_
 
 struct inode;
