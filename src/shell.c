@@ -584,7 +584,7 @@ void run_shell(void)
       }
       else
       {
-        printf("rmdir failed: %s\n", pathbuf);
+        printf("rmdi  r failed: %s\n", pathbuf);
       }
       SUDO_RESTORE(is_sudo, old_uid, old_gid);
       continue;
