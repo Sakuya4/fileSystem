@@ -18,7 +18,8 @@
 #define META_MAX_ENTRIES 1024
 
 /* root entries only (for Phase 4-2) */
-typedef struct {
+typedef struct 
+{
     uint32_t magic;
     uint32_t ver;
     uint32_t entry_count;
@@ -27,7 +28,8 @@ typedef struct {
 
 #define NAME_MAX_ONDISK 60
 
-typedef struct {
+typedef struct 
+{
     uint8_t  used;          /* 0 free, 1 used */
     uint8_t  type;          /* FS_INODE_FILE / FS_INODE_DIR */
     uint16_t reserved0;
@@ -37,12 +39,14 @@ typedef struct {
     char     name[NAME_MAX_ONDISK]; /* null-terminated if fits */
 } meta_entry_t;
 
-static void entry_clear(meta_entry_t *e) {
+static void entry_clear(meta_entry_t *e) 
+{
     memset(e, 0, sizeof(*e));
     for (int i = 0; i < DIRECT_BLOCKS; i++) e->blocks[i] = -1;
 }
 
-static void inode_init_blocks(struct inode *ino) {
+static void inode_init_blocks(struct inode *ino) 
+{
     for (int i = 0; i < DIRECT_BLOCKS; i++) ino->i_block[i] = -1;
 }
 
@@ -51,7 +55,8 @@ static uint32_t g_entry_count;
 
 
 /* count root children */
-static uint32_t count_root_children(void) {
+static uint32_t count_root_children(void) 
+{
     struct super_block *sb = fs_get_super();
     if (!sb || !sb->s_root) return 0;
 
@@ -129,8 +134,10 @@ int meta_save(void)
     uint32_t offset = 0;
     memset(buf, 0, sizeof(buf));
 
-    for (uint32_t i = 0; i < g_entry_count; i++) {
-        if (offset + sizeof(meta_entry_t) > BLOCK_SIZE) {
+    for (uint32_t i = 0; i < g_entry_count; i++) 
+    {
+        if (offset + sizeof(meta_entry_t) > BLOCK_SIZE) 
+        {
             if (block_write(blkno, buf) != 0) return -1;
             blkno++;
             offset = 0;
@@ -141,7 +148,8 @@ int meta_save(void)
         offset += sizeof(meta_entry_t);
     }
 
-    if (g_entry_count > 0) {
+    if (g_entry_count > 0) 
+    {
         if (block_write(blkno, buf) != 0) return -1;
     }
 
@@ -164,7 +172,8 @@ int meta_load(void)
     if (block_read(META_BLK_HEADER, buf) != 0) return -1;
     memcpy(&hdr, buf, sizeof(hdr));
 
-    if (hdr.magic != META_MAGIC || hdr.ver != META_VER) {
+    if (hdr.magic != META_MAGIC || hdr.ver != META_VER) 
+    {
         return 0; // empty fs
     }
 
@@ -172,7 +181,8 @@ int meta_load(void)
     block_reserve(META_BLK_HEADER);
     uint32_t entry_bytes  = hdr.entry_count * (uint32_t)sizeof(meta_entry_t);
     uint32_t entry_blocks = (entry_bytes + BLOCK_SIZE - 1) / BLOCK_SIZE;
-    for (uint32_t b = 0; b < entry_blocks; b++) {
+    for (uint32_t b = 0; b < entry_blocks; b++) 
+    {
         block_reserve((int)(META_BLK_ENTRIES_START + b));
     }
 
@@ -184,8 +194,10 @@ int meta_load(void)
     uint32_t offset = 0;
     if (block_read((int)blkno, buf) != 0) return -1;
 
-    for (uint32_t i = 0; i < to_load; i++) {
-        if (offset + sizeof(meta_entry_t) > BLOCK_SIZE) {
+    for (uint32_t i = 0; i < to_load; i++) 
+    {
+        if (offset + sizeof(meta_entry_t) > BLOCK_SIZE) 
+        {
             blkno++;
             offset = 0;
             if (block_read((int)blkno, buf) != 0) return -1;
@@ -195,7 +207,8 @@ int meta_load(void)
     }
 
     // 第 1 pass：create dent/inode，但先不掛 tree
-    for (uint32_t i = 0; i < to_load; i++) {
+    for (uint32_t i = 0; i < to_load; i++) 
+    {
         meta_entry_t *e = &entry_list[i];
         if (!e->used) continue;
 
@@ -208,7 +221,8 @@ int meta_load(void)
         ino->i_mode  = (ino->i_type == FS_INODE_DIR) ? (FS_IFDIR | 0755) : (FS_IFREG | 0644);
 
         inode_init_blocks(ino);
-        for (int k = 0; k < DIRECT_BLOCKS; k++) {
+        for (int k = 0; k < DIRECT_BLOCKS; k++) 
+        {
             ino->i_block[k] = e->blocks[k];
             if (e->blocks[k] >= 0) block_reserve(e->blocks[k]); // 保險：把檔案 data block 標成 used
         }
@@ -224,18 +238,23 @@ int meta_load(void)
     }
 
     // 第 2 pass：依 parent 掛起來
-    for (uint32_t i = 0; i < to_load; i++) {
+    for (uint32_t i = 0; i < to_load; i++) 
+    {
         meta_entry_t *e = &entry_list[i];
         if (!e->used) continue;
         if (!dent_list[i]) continue;
 
-        if (e->parent < 0) {
+        if (e->parent < 0) 
+        {
             dentry_add_child(sb->s_root, dent_list[i]);
         } else {
             int p = e->parent;
-            if (p >= 0 && p < (int)to_load && dent_list[p]) {
+            if (p >= 0 && p < (int)to_load && dent_list[p]) 
+            {
                 dentry_add_child(dent_list[p], dent_list[i]);
-            } else {
+            } 
+            else 
+            {
                 // parent 壞掉：保底掛回 root
                 dentry_add_child(sb->s_root, dent_list[i]);
             }
